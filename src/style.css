@@ -161,3 +161,16 @@ html,body,#root{margin:0;min-height:100%}body{background:var(--ds-page)}
 .ef-settings .file-control{margin-bottom:2px}
 .ef-brandwrap{display:inline-flex;align-items:center;gap:10px}
 .ef-logo{width:40px;height:40px;border-radius:10px;flex:none}
+.ef-calculate .file-button:disabled,.ef-calculate .file-button[disabled]{opacity:.45;cursor:not-allowed;filter:saturate(.6)}
+.ef-stepper-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.ef-step-btn{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--ef-border,#3a4356);background:var(--ef-panel,#0f1726);color:var(--ef-ink,#eef2f8);font-size:24px;font-weight:700;line-height:1;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.ef-step-btn:active:not(:disabled){background:var(--ef-glow,rgba(110,231,255,.2));border-color:var(--ef-accent,#6ee7ff)}
+.ef-step-btn:disabled{opacity:.35;cursor:not-allowed}
+.ef-step-val{flex:1;min-width:0;display:flex;align-items:baseline;justify-content:center;gap:5px;direction:ltr}
+.ef-step-val input{width:3.2ch;min-width:0;text-align:center;font-size:22px;font-weight:800;background:transparent;border:0;border-bottom:1px solid var(--ef-border,#3a4356);color:inherit;padding:2px 0;box-sizing:content-box}
+.ef-step-val span{font-size:12px;opacity:.65}
+.ef-stepper-row{gap:6px}
+.ef-step-btn{width:38px;height:44px;font-size:22px}
+.ef-step-val{flex-direction:column;align-items:center;justify-content:center;gap:0;line-height:1.1}
+.ef-step-val input{width:4ch;font-size:20px;padding:2px 0}
+.ef-step-val span{white-space:nowrap;font-size:11px}

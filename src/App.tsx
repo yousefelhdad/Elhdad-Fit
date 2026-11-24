@@ -18,6 +18,7 @@ const THEMES = [
 ];
 const STR:any = {
  en:{
+  u_age:'years',u_weight:'kg',u_height:'cm',minus:'Decrease',plus:'Increase',
   settings:'Settings',theme:'Theme',language:'Language',
   kicker:'YOUR DAILY CALCULATOR',title:'Calories',intro:'Know your needs. Choose your goal. Take the next step.',tag:'MAINTAIN · LOSE · GAIN',
   sec1h:'Start with your details',sec1p:'One minute. A clearer starting point.',
@@ -26,7 +27,7 @@ const STR:any = {
   activity:'Activity level',
   act:{sedentary:'Sedentary',light:'Light',moderate:'Moderate',active:'Active',extra:'Very active'},
   actHint:'Light: 1–3 days/week · Moderate: 3–5 · Active: 6–7.',
-  emptyHint:'Fill in your name and all details, then press Calculate. Your results appear here.',calc:'Calculate my calories →',
+  emptyHint:'Type your name, check your details, then press Calculate. Your results appear here.',calc:'Calculate my calories →',
   storage:'Your details stay on this device.',
   resName:(n:string)=>`Your calories, ${n}`,res:'Your calories',perDay:'Calories per day',
   minorH:'For adults only',minorP:'Calorie estimates are not shown for anyone under 18. Ask a doctor or registered dietitian about your needs.',
@@ -59,6 +60,7 @@ const STR:any = {
   installBtn:'Install',installDismiss:'Dismiss install message'
  },
  ar:{
+  u_age:'سنة',u_weight:'كجم',u_height:'سم',minus:'تقليل',plus:'زيادة',
   settings:'الإعدادات',theme:'المظهر',language:'اللغة',
   kicker:'حاسبتك اليومية',title:'السعرات الحرارية',intro:'اعرف احتياجك. اختر هدفك. وابدأ الخطوة الجاية.',tag:'حفاظ · خسارة · زيادة',
   sec1h:'ابدأ ببياناتك',sec1p:'دقيقة واحدة. نقطة بداية أوضح.',
@@ -67,7 +69,7 @@ const STR:any = {
   activity:'مستوى النشاط',
   act:{sedentary:'قليل الحركة',light:'خفيف',moderate:'متوسط',active:'نشيط',extra:'نشيط جدًا'},
   actHint:'خفيف: 1–3 أيام/أسبوع · متوسط: 3–5 · نشيط: 6–7.',
-  emptyHint:'املا اسمك وكل بياناتك، وبعدين اضغط احسب. نتائجك بتظهر هنا.',calc:'احسب سعراتي ←',
+  emptyHint:'اكتب اسمك وراجع بياناتك، وبعدين اضغط احسب. نتائجك بتظهر هنا.',calc:'احسب سعراتي ←',
   storage:'بياناتك بتفضل على جهازك.',
   resName:(n:string)=>`سعراتك يا ${n}`,res:'سعراتك',perDay:'سعرات في اليوم',
   minorH:'للبالغين فقط',minorP:'لا تُعرض تقديرات السعرات لمن هم تحت 18 سنة. اسأل طبيبًا أو أخصائي تغذية عن احتياجاتك.',
@@ -102,6 +104,30 @@ const STR:any = {
 };
 const DEFAULTS = {name:'',age:18,weight:70,height:170,sex:'male',activity:'moderate'};
 const fmt = (n:number) => (Math.round(n/10)*10).toLocaleString('en-US');
+
+function Stepper({label,min,max,value,onChange,unit,dec,inc}:{label:string;min:number;max:number;value:number;onChange:(n:number)=>void;unit:string;dec:string;inc:string}){
+ const [text,setText]=useState(String(value));
+ const focused=useRef(false);
+ useEffect(()=>{ if(!focused.current)setText(String(value)); },[value]);
+ const timer=useRef<any>(null);
+ const cur=useRef(value); cur.current=value;
+ const step=(d:number)=>{const n=Math.min(max,Math.max(min,cur.current+d));if(n!==cur.current){cur.current=n;onChange(n);setText(String(n));}};
+ const stop=()=>{if(timer.current){clearInterval(timer.current);clearTimeout(timer.current);timer.current=null;}};
+ const start=(d:number)=>{step(d);stop();timer.current=setTimeout(()=>{timer.current=setInterval(()=>step(d),90);},400);};
+ useEffect(()=>stop,[]);
+ const id=React.useId();
+ return <div className="file-control ef-stepper">
+  <label className="file-control-label" htmlFor={id}>{label}</label>
+  <div className="ef-stepper-row">
+   <button type="button" className="ef-step-btn" aria-label={dec} disabled={value<=min} onPointerDown={e=>{e.preventDefault();start(-1);}} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();step(-1);}}}>−</button>
+   <div className="ef-step-val"><input id={id} type="text" inputMode="numeric" value={text} aria-label={label}
+     onFocus={()=>{focused.current=true;}}
+     onChange={e=>{const t=e.target.value.replace(/[^0-9]/g,'').slice(0,3);setText(t);const n=Number(t);if(t!==''&&n>=min&&n<=max)onChange(n);}}
+     onBlur={()=>{focused.current=false;const n=Number(text);const c=text===''?value:Math.min(max,Math.max(min,n));if(c!==value)onChange(c);setText(String(c));}}/><span>{unit}</span></div>
+   <button type="button" className="ef-step-btn" aria-label={inc} disabled={value>=max} onPointerDown={e=>{e.preventDefault();start(1);}} onPointerUp={stop} onPointerLeave={stop} onPointerCancel={stop} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();step(1);}}}>+</button>
+  </div>
+ </div>;
+}
 export function App(){
  const [profile,setProfile,saved] = useLocalState('calx-profile.v1',DEFAULTS);
  const [theme,setTheme,themeSaved] = useLocalState('ef-theme.v1','ocean');
@@ -130,7 +156,7 @@ export function App(){
  const s = STR[lang2];
  const rtl = lang2==='ar';
  const required = ['name','age','weight','height','sex','activity'];
- const supplied = forceTouched || (complete && profile.name.trim().length>0);
+ const supplied = forceTouched || profile.name.trim().length>0;
  const set = (patch:Partial<typeof DEFAULTS>) => { if(ready){setProfile({...profile,...patch});setResult(null);setMinorNote(false);setGoalOpen(false);setTouched(t=>{const nt={...t,...Object.keys(patch).reduce((a,k)=>{a[k]=true;return a;},{} as Record<string,boolean>)};return nt;});setDeleteNotice(false);} };
  useEffect(()=>{ if(required.every(k=>touched[k])&&profile.name.trim()&&!complete)setComplete(true); },[touched,profile.name]);
  const calculate = () => {
@@ -146,7 +172,7 @@ export function App(){
  const goalKg = Number(draftGoal.kg);
  const targetWeight = draftGoal.direction==='loss'?profile.weight-goalKg:profile.weight+goalKg;
  const goalValid = draftGoal.direction==='maintain'||(Number.isFinite(goalKg)&&goalKg>0&&targetWeight>0&&(profile.age<20||targetWeight/((profile.height/100)**2)>=18.5));
- const resetAll = () => {setProfile({...DEFAULTS});setGoal({direction:'maintain',kg:''});setResult(null);setMinorNote(false);setGoalOpen(false);setTouched({});setComplete(false);setDeleteNotice(true);};
+ const resetAll = () => {setProfile({...DEFAULTS});setGoal({direction:'maintain',kg:''});setResult(null);setMinorNote(false);setGoalOpen(false);setTouched({});setComplete(false);setDeleteNotice(true);window.scrollTo({top:0,behavior:'smooth'});};
  const selectedTheme=THEMES.find(t=>t.id===theme)??THEMES[2];
  return <FileCard lang={lang2} dir={rtl?'rtl':'ltr'}><div className={`ef-app ef-${selectedTheme.id}`}>
   <div className="ef-topbar">
@@ -178,9 +204,9 @@ export function App(){
     <div className="ef-section-title"><span className="ef-step">01</span><div><h2>{s.sec1h}</h2><p>{s.sec1p}</p></div></div>
     <div className="ef-field ef-name"><TextField label={s.name} value={profile.name} onChange={value=>set({name:value})}/></div>
     <div className="ef-fields">
-     <div className="ef-field"><Slider label={s.age} min={13} max={80} value={profile.age} onChange={value=>set({age:value})} describe={s.years}/></div>
-     <div className="ef-field"><Slider label={s.weight} min={30} max={200} value={profile.weight} onChange={value=>set({weight:value})} describe={s.kg}/></div>
-     <div className="ef-field"><Slider label={s.height} min={120} max={220} value={profile.height} onChange={value=>set({height:value})} describe={s.cm}/></div>
+     <div className="ef-field"><Stepper label={s.age} min={13} max={80} value={profile.age} onChange={value=>set({age:value})} unit={s.u_age} dec={s.minus} inc={s.plus}/></div>
+     <div className="ef-field"><Stepper label={s.weight} min={30} max={200} value={profile.weight} onChange={value=>set({weight:value})} unit={s.u_weight} dec={s.minus} inc={s.plus}/></div>
+     <div className="ef-field"><Stepper label={s.height} min={120} max={220} value={profile.height} onChange={value=>set({height:value})} unit={s.u_height} dec={s.minus} inc={s.plus}/></div>
      <div className="ef-field"><ChoiceRow label={s.sex} options={[{value:'male',label:s.male},{value:'female',label:s.female}]} value={profile.sex} onChange={value=>set({sex:value})}/></div>
     </div>
     <div className="ef-field ef-activity"><ChoiceRow label={s.activity} options={ACTIVITIES.map(a=>({value:a.value,label:s.act[a.value]}))} value={profile.activity} onChange={value=>set({activity:value})}/><p className="ef-hint">{s.actHint}</p></div>
