@@ -133,3 +133,29 @@ html,body,#root{margin:0;min-height:100%}body{background:var(--ds-page)}
 .file-caption{font-size:12px;color:var(--ef-muted);margin:8px 0 0}
 .file-closing{border-top:1px solid var(--ef-border)}
 .file-callout{padding:12px;border:1px solid var(--ef-border);border-radius:12px}
+.ef-topside{display:flex;align-items:center;gap:12px}
+.ef-nut{width:36px;height:36px;flex:none}
+@media(max-width:767px){.ef-nut{width:30px;height:30px}.ef-topside{gap:8px}}
+
+/* install invitation */
+.ef-install{display:flex;align-items:center;gap:10px;margin:10px 0 0;padding:10px 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--accent,#6ee7ff) 35%,transparent);background:color-mix(in srgb,var(--accent,#6ee7ff) 10%,rgba(10,16,28,.75));box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.ef-install-icon{width:22px;height:22px;flex:0 0 22px;color:var(--accent,#6ee7ff)}
+.ef-install-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ef-install-text b{font-size:14px;letter-spacing:.02em}
+.ef-install-text span{font-size:12.5px;opacity:.75;line-height:1.35}
+.ef-install-btn{flex:0 0 auto;border:0;border-radius:10px;padding:7px 14px;font-weight:700;font-size:13px;color:#0b1220;background:var(--accent,#6ee7ff);cursor:pointer}
+.ef-install-btn:active{transform:translateY(1px)}
+.ef-install-close{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:inherit;opacity:.6;cursor:pointer}
+.ef-install-close svg{width:16px;height:16px}
+.ef-install-close:hover{opacity:1}
+
+/* settings gear + panel */
+.ef-gear{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;flex:none;border-radius:12px;background:#0f1726;border:1.5px solid #3a4356;cursor:pointer;color:#eef2f8;padding:0}
+.ef-gear svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ef-gear:hover{border-color:#566179}
+.ef-gear[aria-expanded="true"]{border-color:var(--ef-accent,#6ee7ff);color:var(--ef-accent,#6ee7ff)}
+.ef-gear:active{transform:translateY(1px)}
+.ef-settings{margin-top:10px;padding:12px;border-radius:14px;border:1px solid var(--ef-border,#3a4356);background:var(--ef-panel,rgba(10,16,28,.75))}
+.ef-settings-label{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.6;margin:4px 0 6px}
+.ef-settings .ef-themes{margin-top:0;margin-bottom:12px}
+.ef-settings .file-control{margin-bottom:2px}
