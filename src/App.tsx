@@ -26,7 +26,7 @@ const STR:any = {
   activity:'Activity level',
   act:{sedentary:'Sedentary',light:'Light',moderate:'Moderate',active:'Active',extra:'Very active'},
   actHint:'Light: 1–3 days/week · Moderate: 3–5 · Active: 6–7.',
-  emptyHint:'Enter your details and your calorie results appear here instantly.',
+  emptyHint:'Fill in your name and all details, then press Calculate. Your results appear here.',calc:'Calculate my calories →',
   storage:'Your details stay on this device.',
   resName:(n:string)=>`Your calories, ${n}`,res:'Your calories',perDay:'Calories per day',
   minorH:'For adults only',minorP:'Calorie estimates are not shown for anyone under 18. Ask a doctor or registered dietitian about your needs.',
@@ -67,7 +67,7 @@ const STR:any = {
   activity:'مستوى النشاط',
   act:{sedentary:'قليل الحركة',light:'خفيف',moderate:'متوسط',active:'نشيط',extra:'نشيط جدًا'},
   actHint:'خفيف: 1–3 أيام/أسبوع · متوسط: 3–5 · نشيط: 6–7.',
-  emptyHint:'أدخل بياناتك وتظهر نتائجك هنا فورًا.',
+  emptyHint:'املا اسمك وكل بياناتك، وبعدين اضغط احسب. نتائجك بتظهر هنا.',calc:'احسب سعراتي ←',
   storage:'بياناتك بتفضل على جهازك.',
   resName:(n:string)=>`سعراتك يا ${n}`,res:'سعراتك',perDay:'سعرات في اليوم',
   minorH:'للبالغين فقط',minorP:'لا تُعرض تقديرات السعرات لمن هم تحت 18 سنة. اسأل طبيبًا أو أخصائي تغذية عن احتياجاتك.',
@@ -129,17 +129,19 @@ export function App(){
  const lang2 = (forceLangAr?'ar':lang) as 'en'|'ar';
  const s = STR[lang2];
  const rtl = lang2==='ar';
- const required = ['age','weight','height','sex','activity'];
- const supplied = forceTouched || complete;
- const set = (patch:Partial<typeof DEFAULTS>) => { if(ready){setProfile({...profile,...patch});setTouched(t=>{const nt={...t,...Object.keys(patch).reduce((a,k)=>{a[k]=true;return a;},{} as Record<string,boolean>)};if(required.every(k=>nt[k]))setComplete(true);return nt;});setDeleteNotice(false);} };
- useEffect(()=>{
-  if(!supplied){setResult(null);setMinorNote(false);return;}
+ const required = ['name','age','weight','height','sex','activity'];
+ const supplied = forceTouched || (complete && profile.name.trim().length>0);
+ const set = (patch:Partial<typeof DEFAULTS>) => { if(ready){setProfile({...profile,...patch});setResult(null);setMinorNote(false);setGoalOpen(false);setTouched(t=>{const nt={...t,...Object.keys(patch).reduce((a,k)=>{a[k]=true;return a;},{} as Record<string,boolean>)};return nt;});setDeleteNotice(false);} };
+ useEffect(()=>{ if(required.every(k=>touched[k])&&profile.name.trim()&&!complete)setComplete(true); },[touched,profile.name]);
+ const calculate = () => {
+  if(!supplied)return;
   if(profile.age<18){setResult(null);setMinorNote(true);return;}
   const base = 10*profile.weight+6.25*profile.height-5*profile.age;
   const bmr = base+(profile.sex==='male'?5:-161);
   const tdee = bmr*(ACTIVITIES.find(a=>a.value===profile.activity)??ACTIVITIES[2]).factor;
   setResult({bmr,tdee,loss:Math.max(tdee-500,1200),gain:tdee+300,clamped:tdee-500<1200});setMinorNote(false);
- },[profile.age,profile.weight,profile.height,profile.sex,profile.activity,supplied]);
+ };
+ useEffect(()=>{ if(forceTouched)calculate(); },[]);
  const bmi = profile.weight / ((profile.height/100)**2);
  const goalKg = Number(draftGoal.kg);
  const targetWeight = draftGoal.direction==='loss'?profile.weight-goalKg:profile.weight+goalKg;
@@ -148,7 +150,7 @@ export function App(){
  const selectedTheme=THEMES.find(t=>t.id===theme)??THEMES[2];
  return <FileCard lang={lang2} dir={rtl?'rtl':'ltr'}><div className={`ef-app ef-${selectedTheme.id}`}>
   <div className="ef-topbar">
-   <span className="ef-brand" dir="ltr">ELHDAD <span>FIT</span><small>YOUR DAILY BALANCE</small></span>
+   <span className="ef-brandwrap" dir="ltr"><img className="ef-logo" src="./icons/icon-192.png" alt="" width="40" height="40"/><span className="ef-brand" dir="ltr">ELHDAD <span>FIT</span><small>YOUR DAILY BALANCE</small></span></span>
    <span className="ef-topside">
     <button type="button" className="ef-gear" disabled={!themeSaved.ready} onClick={()=>setSettingsOpen(!settingsOpen)} aria-expanded={settingsOpen} aria-label={s.settings}>
      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -182,15 +184,16 @@ export function App(){
      <div className="ef-field"><ChoiceRow label={s.sex} options={[{value:'male',label:s.male},{value:'female',label:s.female}]} value={profile.sex} onChange={value=>set({sex:value})}/></div>
     </div>
     <div className="ef-field ef-activity"><ChoiceRow label={s.activity} options={ACTIVITIES.map(a=>({value:a.value,label:s.act[a.value]}))} value={profile.activity} onChange={value=>set({activity:value})}/><p className="ef-hint">{s.actHint}</p></div>
+    <div className="ef-calculate"><FileButton variant="primary" disabled={!ready||!supplied} onClick={calculate}>{s.calc}</FileButton></div>
     <div className="ef-storage"><Caption>{saved.message||s.storage}</Caption>{themeSaved.message&&themeSaved.message!==saved.message&&<Caption>{themeSaved.message}</Caption>}</div>
    </section>
    <section className="ef-results" aria-live="polite">
     <div className="ef-section-title"><span className="ef-step">02</span><div><h2>{result?(profile.name.trim()?s.resName(profile.name.trim()):s.res):s.res}</h2><p>{s.perDay}</p></div></div>
-    {minorNote?<div className="ef-note"><h3>{s.minorH}</h3><p>{s.minorP}</p></div>:<div className="ef-stats">{[
-     {label:s.maintain,value:result?.tdee,detail:s.maintainD,main:true},
-     {label:s.lose,value:result?.loss,detail:result?.clamped?s.loseFloorD:s.loseD},
-     {label:s.gain,value:result?.gain,detail:s.gainD}
-    ].map((s2,i)=><div key={s2.label} className={`ef-stat ${s2.main?'ef-stat-main':''}`}><div className="ef-stat-top"><span>{s2.label}</span><span className="ef-stat-icon">{['=','−','+'][i]}</span></div><strong>{s2.value!==undefined?fmt(s2.value):'···'}</strong><p>{s2.detail}</p></div>)}</div>}
+    {!result&&!minorNote?null:minorNote?<div className="ef-note"><h3>{s.minorH}</h3><p>{s.minorP}</p></div>:<div className="ef-stats">{[
+     {label:s.gain,value:result?.gain,detail:s.gainD,icon:'+'},
+     {label:s.maintain,value:result?.tdee,detail:s.maintainD,main:true,icon:'='},
+     {label:s.lose,value:result?.loss,detail:result?.clamped?s.loseFloorD:s.loseD,icon:'−'}
+    ].map((s2,i)=><div key={s2.label} className={`ef-stat ${s2.main?'ef-stat-main':''}`}><div className="ef-stat-top"><span>{s2.label}</span><span className="ef-stat-icon">{s2.icon}</span></div><strong>{s2.value!==undefined?fmt(s2.value):'···'}</strong><p>{s2.detail}</p></div>)}</div>}
     {result&&<div className="ef-bmr"><span>{s.bmr} <bdi>BMR</bdi></span><strong>{fmt(result.bmr)}</strong></div>}
     {!result&&!minorNote&&<p className="ef-hint ef-empty">{s.emptyHint}</p>}
     <p className="ef-disclaimer">{s.disclaimer}</p>
